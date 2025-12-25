@@ -3,22 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <title>แบบฟอร์มเบิกเงินสดย่อย</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
-<body>
-  <h2>แบบฟอร์มเบิกเงินสดย่อย</h2>
 
-  <form id="pettyForm">
-    <label>ชื่อผู้เบิก</label><br />
-    <input name="requester" required /><br /><br />
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <label>รายการเบิก (1 รายการต่อบรรทัด)</label><br />
-    <textarea name="items" rows="5" required></textarea><br /><br />
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-lg p-6">
+    <h2 class="text-2xl font-semibold text-slate-800 mb-6">
+      แบบฟอร์มเบิกเงินสดย่อย
+    </h2>
 
-    <label>ยอดรวม</label><br />
-    <input type="number" name="amount" required /><br /><br />
+    <form id="pettyForm" class="space-y-4">
 
-    <button type="submit">ส่งคำขอ</button>
-  </form>
+      <!-- ผู้เบิก -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          ชื่อผู้เบิก
+        </label>
+        <input
+          name="requester"
+          required
+          placeholder="เช่น สมชาย ใจดี"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- รายการ -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          รายการเบิก (1 รายการต่อบรรทัด)
+        </label>
+        <textarea
+          name="items"
+          rows="5"
+          required
+          placeholder="ค่าน้ำมัน&#10;ค่าอาหาร&#10;ค่าอุปกรณ์"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+      </div>
+
+      <!-- จำนวนเงิน -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          ยอดรวม (บาท)
+        </label>
+        <input
+          type="number"
+          name="amount"
+          required
+          placeholder="เช่น 1200"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <!-- ปุ่ม -->
+      <button
+        type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition"
+      >
+        ส่งคำขอเบิก
+      </button>
+
+    </form>
+
+    <p class="text-xs text-slate-400 text-center mt-4">
+      ระบบเบิกเงินสดย่อย • Powered by n8n
+    </p>
+  </div>
 
   <script>
     const SECRET = "PCASH_2025_SECRET";
@@ -26,24 +81,29 @@
     document.getElementById("pettyForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const formData = new FormData(e.target);
+      const form = e.target;
+      const formData = new FormData(form);
       formData.append("secret", SECRET);
 
-      const res = await fetch(
-        "https://n8n-zh10.onrender.com/webhook/petty-cash",
-        {
-          method: "POST",
-          body: formData
-        }
-      );
+      try {
+        const res = await fetch(
+          "https://n8n-zh10.onrender.com/webhook/petty-cash",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
 
-      if (res.ok) {
-        alert("ส่งข้อมูลเรียบร้อย");
-        e.target.reset();
-      } else {
-        alert("เกิดข้อผิดพลาด");
+        if (!res.ok) throw new Error("submit failed");
+
+        alert("✅ ส่งคำขอเรียบร้อยแล้ว");
+        form.reset();
+      } catch (err) {
+        alert("❌ ส่งไม่สำเร็จ กรุณาลองใหม่");
+        console.error(err);
       }
     });
   </script>
+
 </body>
 </html>
