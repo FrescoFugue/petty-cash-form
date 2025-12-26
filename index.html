@@ -1,30 +1,32 @@
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-
   const itemsContainer = document.getElementById("itemsContainer");
   const totalAmountInput = document.getElementById("totalAmount");
-  const form = document.getElementById("pettyForm");
 
   function addItem() {
     const row = document.createElement("div");
     row.className = "flex gap-2";
 
     row.innerHTML = `
-      <input type="text" placeholder="ชื่อรายการ"
-        class="flex-1 rounded-lg border border-slate-300 px-3 py-2" />
-      <input type="number" placeholder="จำนวนเงิน"
-        class="w-32 rounded-lg border border-slate-300 px-3 py-2 item-amount" />
-      <button type="button" class="text-red-500">🗑</button>
+      <input
+        type="text"
+        placeholder="ชื่อรายการ"
+        class="flex-1 rounded-lg border border-slate-300 px-3 py-2"
+      />
+      <input
+        type="number"
+        placeholder="จำนวนเงิน"
+        class="w-32 rounded-lg border border-slate-300 px-3 py-2 item-amount"
+        oninput="calculateTotal()"
+      />
+      <button type="button" onclick="removeItem(this)">🗑</button>
     `;
 
-    row.querySelector("button").onclick = () => {
-      row.remove();
-      calculateTotal();
-    };
-
-    row.querySelector(".item-amount").oninput = calculateTotal;
-
     itemsContainer.appendChild(row);
+  }
+
+  function removeItem(btn) {
+    btn.parentElement.remove();
+    calculateTotal();
   }
 
   function calculateTotal() {
@@ -37,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addItem();
 
-  form.addEventListener("submit", async (e) => {
+  document.getElementById("pettyForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const items = [];
@@ -57,4 +59,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const payload = {
-      requester
+      requester: e.target.requester.value,
+      items,
+      amount: totalAmountInput.value
+    };
+
+    try {
+      const res = await fetch(
+        "https://YOUR-BACKEND-URL/submit-petty-cash",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (!res.ok) throw new Error();
+      alert("✅ ส่งคำขอเรียบร้อย");
+      e.target.reset();
+      itemsContainer.innerHTML = "";
+      addItem();
+      calculateTotal();
+    } catch {
+      alert("❌ ส่งไม่สำเร็จ");
+    }
+  });
+</script>
