@@ -1,10 +1,25 @@
 <script>
+document.addEventListener("DOMContentLoaded", () => {
   const itemsContainer = document.getElementById("itemsContainer");
   const totalAmountInput = document.getElementById("totalAmount");
+  const form = document.getElementById("pettyForm");
+
+  if (!itemsContainer || !totalAmountInput || !form) {
+    console.error("❌ Missing required elements");
+    return;
+  }
+
+  function calculateTotal() {
+    let total = 0;
+    itemsContainer.querySelectorAll(".item-amount").forEach(input => {
+      total += Number(input.value || 0);
+    });
+    totalAmountInput.value = total;
+  }
 
   function addItem() {
     const row = document.createElement("div");
-    row.className = "flex gap-2";
+    row.className = "flex gap-2 items-center";
 
     row.innerHTML = `
       <input
@@ -16,30 +31,26 @@
         type="number"
         placeholder="จำนวนเงิน"
         class="w-32 rounded-lg border border-slate-300 px-3 py-2 item-amount"
-        oninput="calculateTotal()"
       />
-      <button type="button" onclick="removeItem(this)">🗑</button>
+      <button type="button" class="text-red-600">🗑</button>
     `;
+
+    row.querySelector(".item-amount")
+      .addEventListener("input", calculateTotal);
+
+    row.querySelector("button")
+      .addEventListener("click", () => {
+        row.remove();
+        calculateTotal();
+      });
 
     itemsContainer.appendChild(row);
   }
 
-  function removeItem(btn) {
-    btn.parentElement.remove();
-    calculateTotal();
-  }
-
-  function calculateTotal() {
-    let total = 0;
-    document.querySelectorAll(".item-amount").forEach(input => {
-      total += Number(input.value || 0);
-    });
-    totalAmountInput.value = total;
-  }
-
+  // เริ่มต้น 1 แถว
   addItem();
 
-  document.getElementById("pettyForm").addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const items = [];
@@ -59,7 +70,7 @@
     }
 
     const payload = {
-      requester: e.target.requester.value,
+      requester: form.requester.value,
       items,
       amount: totalAmountInput.value
     };
@@ -75,13 +86,16 @@
       );
 
       if (!res.ok) throw new Error();
+
       alert("✅ ส่งคำขอเรียบร้อย");
-      e.target.reset();
+      form.reset();
       itemsContainer.innerHTML = "";
       addItem();
       calculateTotal();
+
     } catch {
       alert("❌ ส่งไม่สำเร็จ");
     }
   });
+});
 </script>
