@@ -1,37 +1,73 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ฟอร์มเบิกเงินสดย่อย</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen flex justify-center p-6">
+
+  <form id="pettyForm" class="bg-white w-full max-w-2xl rounded-xl shadow p-6 space-y-4">
+    <h1 class="text-xl font-semibold">แบบฟอร์มเบิกเงินสดย่อย</h1>
+
+    <input
+      name="requester"
+      placeholder="ผู้ขอเบิก"
+      class="w-full border rounded-lg px-3 py-2"
+      required
+    />
+
+    <div id="itemsContainer" class="space-y-2"></div>
+
+    <button
+      type="button"
+      id="addItemBtn"
+      class="px-3 py-1 bg-blue-600 text-white rounded"
+    >
+      ➕ เพิ่มรายการ
+    </button>
+
+    <input
+      id="totalAmount"
+      readonly
+      placeholder="ยอดรวม"
+      class="w-full border rounded-lg px-3 py-2 bg-slate-100"
+    />
+
+    <button
+      type="submit"
+      class="w-full bg-green-600 text-white py-2 rounded-lg"
+    >
+      ส่งคำขอ
+    </button>
+  </form>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const itemsContainer = document.getElementById("itemsContainer");
   const totalAmountInput = document.getElementById("totalAmount");
+  const addItemBtn = document.getElementById("addItemBtn");
   const form = document.getElementById("pettyForm");
-
-  if (!itemsContainer || !totalAmountInput || !form) {
-    console.error("❌ Missing required elements");
-    return;
-  }
 
   function calculateTotal() {
     let total = 0;
-    itemsContainer.querySelectorAll(".item-amount").forEach(input => {
-      total += Number(input.value || 0);
+    itemsContainer.querySelectorAll(".item-amount").forEach(i => {
+      total += Number(i.value || 0);
     });
     totalAmountInput.value = total;
   }
 
   function addItem() {
     const row = document.createElement("div");
-    row.className = "flex gap-2 items-center";
+    row.className = "flex gap-2";
 
     row.innerHTML = `
-      <input
-        type="text"
-        placeholder="ชื่อรายการ"
-        class="flex-1 rounded-lg border border-slate-300 px-3 py-2"
-      />
-      <input
-        type="number"
-        placeholder="จำนวนเงิน"
-        class="w-32 rounded-lg border border-slate-300 px-3 py-2 item-amount"
-      />
+      <input class="flex-1 border rounded px-2 py-1" placeholder="ชื่อรายการ">
+      <input type="number" class="w-32 border rounded px-2 py-1 item-amount" placeholder="จำนวน">
       <button type="button" class="text-red-600">🗑</button>
     `;
 
@@ -47,55 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
     itemsContainer.appendChild(row);
   }
 
-  // เริ่มต้น 1 แถว
+  addItemBtn.addEventListener("click", addItem);
   addItem();
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const items = [];
-    itemsContainer.querySelectorAll("div").forEach(row => {
-      const inputs = row.querySelectorAll("input");
-      if (inputs[0].value && inputs[1].value) {
-        items.push({
-          name: inputs[0].value,
-          amount: Number(inputs[1].value)
-        });
-      }
-    });
-
-    if (items.length === 0) {
-      alert("กรุณาเพิ่มอย่างน้อย 1 รายการ");
-      return;
-    }
-
-    const payload = {
-      requester: form.requester.value,
-      items,
-      amount: totalAmountInput.value
-    };
-
-    try {
-      const res = await fetch(
-        "https://YOUR-BACKEND-URL/submit-petty-cash",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      if (!res.ok) throw new Error();
-
-      alert("✅ ส่งคำขอเรียบร้อย");
-      form.reset();
-      itemsContainer.innerHTML = "";
-      addItem();
-      calculateTotal();
-
-    } catch {
-      alert("❌ ส่งไม่สำเร็จ");
-    }
-  });
 });
 </script>
+
+</body>
+</html>
